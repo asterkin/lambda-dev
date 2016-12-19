@@ -1,0 +1,17 @@
+#!/bin/bash
+
+aws lambda add-permission \
+--function-name CreateThumbnail \
+--region eu-central-1 \
+--statement-id 19-21-2016-19-20 \
+--action "lambda:InvokeFunction" \
+--principal s3.amazonaws.com \
+--source-arn arn:aws:s3:::face-picture \
+--source-account 749364635755 \
+--profile admin
+
+aws lambda get-policy \
+--function-name CreateThumbnail \
+--profile admin
+
+

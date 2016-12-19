@@ -1,0 +1,10 @@
+#!/bin/bash
+
+aws lambda invoke \
+--invocation-type Event \
+--function-name CreateThumbnail \
+--region eu-central-1 \
+--payload file://./inputfile.txt \
+--profile admin \
+outputfile.txt
+

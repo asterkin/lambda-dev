@@ -1,0 +1,14 @@
+#!/bin/bash
+
+zip -r CreateThumbnail.zip *.js node_modules/
+aws lambda create-function \
+--region eu-central-1 \
+--function-name CreateThumbnail \
+--zip-file fileb://./CreateThumbnail.zip \
+--role arn:aws:iam::749364635755:role/lambda-s3-execution-role \
+--handler CreateThumbnail.handler \
+--runtime nodejs4.3 \
+--profile admin \
+--timeout 10 \
+--memory-size 1024
+
