@@ -1,0 +1,8 @@
+#!/bin/bash
+
+aws cloudformation deploy \
+  --template-file ./CreateThumbnail-SAM.yaml \
+  --stack-name CreateThumbnail \
+  --capabilities CAPABILITY_IAM \
+  --profile admin
+

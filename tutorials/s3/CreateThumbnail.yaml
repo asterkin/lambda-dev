@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  CreateThumbnail:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs4.3
+      Timeout: 60
+      Policies: AWSLambdaExecute
+      Events:
+          PictureUpload:
+              Type: S3
+              Properties:
+                 Bucket: !Ref FacePicture
+                 Events: s3:ObjectCreated:*
+
+  FacePicture:
+    Type: AWS::S3::Bucket
+
+  FacePictureResized:
+    Type: AWS::S3::Bucket
+

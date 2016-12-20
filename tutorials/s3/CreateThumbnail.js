@@ -19,7 +19,7 @@ exports.handler = function(event, context, callback) {
     // Object key may have spaces or unicode non-ASCII characters.
     var srcKey    =
     decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, " "));  
-    var dstBucket = srcBucket + "resized";
+    var dstBucket = srcBucket + "Resized";
     var dstKey    = "resized-" + srcKey;
 
     // Sanity check: validate that source and destination are different buckets.
