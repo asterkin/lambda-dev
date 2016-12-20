@@ -1,10 +1,12 @@
 #!/bin/bash
 
+aws --profile admin s3 cp ./resource/happy-face.png s3://face-picture
 aws lambda invoke \
 --invocation-type Event \
 --function-name CreateThumbnail \
---region eu-central-1 \
 --payload file://./inputfile.txt \
 --profile admin \
-outputfile.txt
+./outputfile.txt
+ 
+aws --profile admin s3 ls s3://face-pictureresized
 
