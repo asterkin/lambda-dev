@@ -1,7 +1,9 @@
 #!/bin/bash
 
+cd src
 npm install async gm
-zip -r CreateThumbnail.zip *.js node_modules/
+cd -
+#zip -r CreateThumbnail.zip *.js node_modules/
 aws s3 mb s3://lambda-dev-tutorials \
    --profile admin
 

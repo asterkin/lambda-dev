@@ -1,9 +1,13 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Resources:
+  FacePictureResized:
+    Type: AWS::S3::Bucket
+
   CreateThumbnail:
     Type: AWS::Serverless::Function
     Properties:
+      CodeUri: ./src
       Handler: index.handler
       Runtime: nodejs4.3
       Timeout: 60
@@ -14,10 +18,11 @@ Resources:
               Properties:
                  Bucket: !Ref FacePicture
                  Events: s3:ObjectCreated:*
+      Environment:
+        Variables:
+          RESIZED_BUCKET: !Ref FacePictureResized
 
   FacePicture:
     Type: AWS::S3::Bucket
 
-  FacePictureResized:
-    Type: AWS::S3::Bucket
 
