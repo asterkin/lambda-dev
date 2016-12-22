@@ -8,7 +8,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./src
-      Handler: index.handler
+      Handler: CreateThumbnail.handler
       Runtime: nodejs4.3
       Timeout: 60
       Policies: AWSLambdaExecute

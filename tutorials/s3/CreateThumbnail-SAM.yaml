@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Resources:
   CreateThumbnail:
     Properties:
-      CodeUri: s3://lambda-dev-tutorials/69ac3a13414a665d37ecf282d1c05d07
+      CodeUri: s3://lambda-dev-tutorials/4034355f7dd37f0f64ba9357284d4dcc
       Environment:
         Variables:
           RESIZED_BUCKET:
@@ -14,7 +14,7 @@ Resources:
               Ref: FacePicture
             Events: s3:ObjectCreated:*
           Type: S3
-      Handler: index.handler
+      Handler: CreateThumbnail.handler
       Policies: AWSLambdaExecute
       Runtime: nodejs4.3
       Timeout: 60
