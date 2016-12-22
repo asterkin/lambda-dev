@@ -9,7 +9,7 @@ aws s3 mb s3://lambda-dev-tutorials \
 
 aws cloudformation package \
    --template-file CreateThumbnail.yaml \
-   --output-template-file CreateThumbnail-SAM.yaml \
+   --output-template-file /tmp/CreateThumbnail-SAM.yaml \
    --s3-bucket lambda-dev-tutorials \
    --profile admin
 

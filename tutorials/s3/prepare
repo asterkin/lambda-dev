@@ -1,7 +1,0 @@
-#!/bin/bash
-
-npm install async gm
-aws s3 mb s3://face-picture --profile admin
-aws s3 mb s3://face-pictureresized --profile admin
-
-

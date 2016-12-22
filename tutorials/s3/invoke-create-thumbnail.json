@@ -1,8 +1,0 @@
-{
-"CloudFunctionConfiguration": 
-    {
-      "Id": "20-12-2016-15-05",
-      "CloudFunction": "arn:aws:lambda:eu-central-1:749364635755:function:CreateThumbnail",
-      "Event": "s3:ObjectCreated:*"
-    }
-}
