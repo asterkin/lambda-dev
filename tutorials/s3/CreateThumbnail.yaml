@@ -4,6 +4,9 @@ Resources:
   FacePictureResized:
     Type: AWS::S3::Bucket
 
+  FacePicture:
+    Type: AWS::S3::Bucket
+
   CreateThumbnail:
     Type: AWS::Serverless::Function
     Properties:
@@ -22,7 +25,5 @@ Resources:
         Variables:
           RESIZED_BUCKET: !Ref FacePictureResized
 
-  FacePicture:
-    Type: AWS::S3::Bucket
 
 
