@@ -1,0 +1,5 @@
+#!/bin/bash
+
+scp -i "~/Downloads/aws-desktop-key.pem" -r ~/.aws ubuntu@$1:~/
+scp -i "~/Downloads/aws-desktop-key.pem" ~/.gitconfig ubuntu@$1:~/
+
