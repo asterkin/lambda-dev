@@ -1,5 +1,11 @@
 #!/bin/bash
 
-ID=`aws cloudformation describe-stack-resource --stack-name CreateThumbnail --logical-resource-id FacePicture --profile admin | jq -r '.StackResourceDetail.PhysicalResourceId'`
+DATA=`aws cloudformation describe-stack-resource --stack-name CreateThumbnailTest --logical-resource-id CreateThumbnailTestData --profile admin | jq -r '.StackResourceDetail.PhysicalResourceId'`
 
-aws s3 cp resource/ s3://$ID/ --recursive --exclude "*" --include "*.png" --profile admin
+FUNCTION=`aws cloudformation describe-stack-resource --stack-name CreateThumbnailTest --logical-resource-id CreateThumbnailTest --profile admin | jq -r '.StackResourceDetail.PhysicalResourceId'`
+
+aws s3 cp resource/ s3://$DATA/ --recursive --exclude "*" --include "*.png" --profile admin
+aws lambda invoke --function-name $FUNCTION --profile admin output.txt
+
+
+

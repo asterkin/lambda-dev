@@ -1,0 +1,14 @@
+#!/bin/bash
+
+cd js
+npm install async
+cd -
+aws s3 mb s3://lambda-dev-tutorials \
+   --profile admin
+
+aws cloudformation package \
+   --template-file ./CreateThumbnailTest.yaml \
+   --output-template-file /tmp/CreateThumbnailTest-SAM.yaml \
+   --s3-bucket lambda-dev-tutorials \
+   --profile admin
+

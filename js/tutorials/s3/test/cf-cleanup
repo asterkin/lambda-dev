@@ -1,0 +1,7 @@
+#!/bin/bash
+
+DATA=`aws cloudformation describe-stack-resource --stack-name CreateThumbnailTest --logical-resource-id CreateThumbnailTestData --profile admin | jq -r '.StackResourceDetail.PhysicalResourceId'`
+
+aws s3 rm s3://$DATA/ --recursive --include "*"
+
+
