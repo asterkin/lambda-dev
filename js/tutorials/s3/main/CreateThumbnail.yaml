@@ -10,7 +10,7 @@ Resources:
   CreateThumbnail:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: ./src
+      CodeUri: ./js
       Handler: CreateThumbnail.handler
       Runtime: nodejs4.3
       Timeout: 60
