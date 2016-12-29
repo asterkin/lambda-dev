@@ -1,0 +1,10 @@
+#!/bin/bash
+
+aws cloudformation deploy \
+  --template-file ./pipeline.yaml \
+  --stack-name CreateThumbnailPipeline \
+  --capabilities CAPABILITY_IAM \
+  --profile admin
+
+
+

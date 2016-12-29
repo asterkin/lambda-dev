@@ -1,10 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Parameters:
-    ServiceName:
-        Type: String
-        Default: CreateThumbnail
-        Description: Name for the service, used in the code repository, Lambda function, and pipeline names
-
+Transform: AWS::Serverless-2016-10-31
 Resources:
     BuildArtifactsBucket:
         Type: AWS::S3::Bucket
@@ -29,8 +24,8 @@ Resources:
                     Statement:
                       - Effect: Allow
                         Resource:
-                          - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${ServiceName}_build'
-                          - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${ServiceName}_build:*'
+                          - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/CreateThumbnail_build'
+                          - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/CreateThumbnail_build:*'
                         Action:
                           - 'logs:CreateLogGroup'
                           - 'logs:CreateLogStream'
@@ -46,7 +41,7 @@ Resources:
     CodeBuildProject:
         Type: AWS::CodeBuild::Project
         Properties:
-            Name: !Sub '${ServiceName}_build'
+            Name: !Sub 'CreateThumbnail_build'
             Description: Build project for the Lambda service
             Environment: 
                 Type: LINUX_CONTAINER
@@ -58,25 +53,7 @@ Resources:
             ServiceRole: !GetAtt CodeBuildServiceRole.Arn
             Source: 
                 Type: GITHUB
-		Location: https://github.com/asterkin/lambda-dev.git
-	    BuildSpec:
-		version: 0.1
-
-		phases:
-		  install:
-		    commands:
-		      - echo "nothing to do in install"
-		  pre_build:
-		    commands:
-		      - echo "nothing to do in pre_build"
-		  build:
-		    commands:
-		      - cd js/tutorials/s3/main
-		      - ./build $BUILD_OUTPUT_BUCKET
-                      - cd ../test
-		      - ./build $BUILD_OUTPUT_BUCKET
-		  post_build:
-		    commands:
-		      - echo "build completed on `date`"
+                Location: https://github.com/asterkin/lambda-dev.git
+                BuildSpec: "version: 0.1\nphases:\n  build:\n    commands:\n      - cd js/tutorials/s3\n      - ./build $BUILD_OUTPUT_BUCKET\n"
 
 
