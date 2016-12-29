@@ -1,0 +1,10 @@
+#!/bin/bash
+
+ID1=`aws cloudformation describe-stack-resource --stack-name CreateThumbnail --logical-resource-id FacePicture --profile admin | jq -r '.StackResourceDetail.PhysicalResourceId'`
+
+ID2=`aws cloudformation describe-stack-resource --stack-name CreateThumbnail --logical-resource-id FacePictureResized --profile admin | jq -r '.StackResourceDetail.PhysicalResourceId'`
+
+aws s3 rm s3://$ID1/ --recursive --include "*"
+aws s3 rm s3://$ID2/ --recursive --include "*"
+
+

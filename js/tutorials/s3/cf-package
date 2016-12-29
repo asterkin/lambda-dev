@@ -1,0 +1,15 @@
+#!/bin/bash
+
+cd src
+npm install async gm
+cd -
+#zip -r CreateThumbnail.zip *.js node_modules/
+aws s3 mb s3://lambda-dev-tutorials \
+   --profile admin
+
+aws cloudformation package \
+   --template-file CreateThumbnail.yaml \
+   --output-template-file /tmp/CreateThumbnail-SAM.yaml \
+   --s3-bucket lambda-dev-tutorials \
+   --profile admin
+
