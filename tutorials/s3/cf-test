@@ -1,5 +1,0 @@
-#!/bin/bash
-
-ID=`aws cloudformation describe-stack-resource --stack-name CreateThumbnail --logical-resource-id FacePicture --profile admin | jq -r '.StackResourceDetail.PhysicalResourceId'`
-
-aws s3 cp resource/ s3://$ID/ --recursive --exclude "*" --include "*.png" --profile admin

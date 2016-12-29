@@ -1,7 +1,0 @@
-#!/bin/bash
-
-./cf-cleanup
-aws cloudformation delete-stack \
-  --stack-name CreateThumbnail \
-  --profile admin
-
