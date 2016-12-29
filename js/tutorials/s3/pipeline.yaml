@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion: 2010-09-09
+Parameters:
+    ServiceName:
+        Type: String
+        Default: CreateThumbnail
+        Description: Name for the service, used in the code repository, Lambda function, and pipeline names
+
+Resources:
+    BuildArtifactsBucket:
+        Type: AWS::S3::Bucket
+
+    CodeBuildServiceRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Action: 
+                      - 'sts:AssumeRole'
+                    Effect: Allow
+                    Principal:
+                      Service:
+                        - codebuild.amazonaws.com
+            Path: /
+            Policies:
+                - PolicyName: CodeBuildAccess
+                  PolicyDocument:
+                    Version: '2012-10-17'
+                    Statement:
+                      - Effect: Allow
+                        Resource:
+                          - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${ServiceName}_build'
+                          - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${ServiceName}_build:*'
+                        Action:
+                          - 'logs:CreateLogGroup'
+                          - 'logs:CreateLogStream'
+                          - 'logs:PutLogEvents'
+                      - Effect: Allow
+                        Resource:
+                          - !Sub 'arn:aws:s3:::${BuildArtifactsBucket}/*'
+                        Action: 
+                          - 's3:GetObject'
+                          - 's3:GetObjectVersion'
+                          - 's3:PutObject'
+
+    CodeBuildProject:
+        Type: AWS::CodeBuild::Project
+        Properties:
+            Name: !Sub '${ServiceName}_build'
+            Description: Build project for the Lambda service
+            Environment: 
+                Type: LINUX_CONTAINER
+                ComputeType: BUILD_GENERAL1_SMALL
+                Image: aws/codebuild/eb-nodejs-4.4.6-amazonlinux-64:2.1.3
+                EnvironmentVariables:
+                  - Name: BUILD_OUTPUT_BUCKET
+                    Value: !Ref BuildArtifactsBucket
+            ServiceRole: !GetAtt CodeBuildServiceRole.Arn
+            Source: 
+                Type: GITHUB
+		Location: https://github.com/asterkin/lambda-dev.git
+	    BuildSpec:
+		version: 0.1
+
+		phases:
+		  install:
+		    commands:
+		      - echo "nothing to do in install"
+		  pre_build:
+		    commands:
+		      - echo "nothing to do in pre_build"
+		  build:
+		    commands:
+		      - cd js/tutorials/s3/main
+		      - ./build $BUILD_OUTPUT_BUCKET
+                      - cd ../test
+		      - ./build $BUILD_OUTPUT_BUCKET
+		  post_build:
+		    commands:
+		      - echo "build completed on `date`"
+
+

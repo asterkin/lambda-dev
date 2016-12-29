@@ -1,0 +1,25 @@
+#!/bin/bash
+
+echo "Start building `date` in `pwd`"
+cd js
+npm install async
+cd -
+
+aws cloudformation package \
+   --template-file ./CreateThumbnailTest.yaml \
+   --output-template-file /tmp/CreateThumbnailTest-SAM.yaml \
+   --s3-bucket $1 \
+   --profile admin
+
+aws cloudformation deploy \
+  --template-file /tmp/CreateThumbnailTest-SAM.yaml \
+  --stack-name CreateThumbnailTest \
+  --capabilities CAPABILITY_IAM \
+  --profile admin
+
+DATA=`aws cloudformation describe-stack-resource --stack-name CreateThumbnailTest --logical-resource-id CreateThumbnailTestData --profile admin | jq -r '.StackResourceDetail.PhysicalResourceId'`
+
+aws s3 cp resource/ s3://$DATA/ --recursive --exclude "*" --include "*.png" --profile admin
+
+
+
