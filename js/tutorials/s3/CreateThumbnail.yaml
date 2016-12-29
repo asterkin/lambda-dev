@@ -25,5 +25,17 @@ Resources:
         Variables:
           RESIZED_BUCKET: !Ref FacePictureResized
 
+Outputs:
+  S3UploadBucket:
+    Description: S3 URL for uploading source artifacts
+    Value: !Ref FacePicture
+    Export:
+      Name: !Sub 'S3UploadBucket' #-${Stage}
+
+  S3ResultBucket:
+    Description: S3 URL for transformation result artifacts
+    Value: !Ref FacePictureResized
+    Export:
+      Name: !Sub 'S3ResultBucket' #-${Stage}
 
 
