@@ -8,13 +8,6 @@ cd -
 aws cloudformation package \
    --template-file ./CreateThumbnail.yaml \
    --output-template-file /tmp/CreateThumbnail-SAM.yaml \
-   --s3-bucket $1 \
-   --profile admin
-
-aws cloudformation deploy \
-  --template-file /tmp/CreateThumbnail-SAM.yaml \
-  --stack-name CreateThumbnail \
-  --capabilities CAPABILITY_IAM \
-  --profile admin
+   --s3-bucket $1 
 
 

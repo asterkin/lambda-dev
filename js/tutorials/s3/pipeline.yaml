@@ -1,6 +1,13 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 Resources:
+    # Code repository for the service
+    CodeRepository:
+        Type: AWS::CodeCommit::Repository
+        Properties:
+            RepositoryName: !Sub 'CreateThumbnail_repo'
+            RepositoryDescription: !Sub 'Repository for the CreateThumbnail service'
+
     BuildArtifactsBucket:
         Type: AWS::S3::Bucket
 
@@ -44,7 +51,7 @@ Resources:
             Name: !Sub 'CreateThumbnail_build'
             Description: Build project for the Lambda service
             Artifacts:
-                Type: NO_ARTIFACTS
+                Type: CODEPIPELINE
             Environment: 
                 Type: LINUX_CONTAINER
                 ComputeType: BUILD_GENERAL1_SMALL
@@ -54,8 +61,182 @@ Resources:
                       Value: !Ref BuildArtifactsBucket
             ServiceRole: !GetAtt CodeBuildServiceRole.Arn
             Source: 
-                Type: GITHUB
-                Location: https://github.com/asterkin/lambda-dev.git
-                BuildSpec: "version: 0.1\nphases:\n  install:\n    commands:\n     apt-get update && apt-get install -y jq\n  build:\n    commands:\n      - cd js/tutorials/s3 && ./build $BUILD_OUTPUT_BUCKET\nartifacts:\n  files:\n    js/tutorials/s3/test/resource/*.png"
+                Type: CODEPIPELINE
 
+    # CodePipeline definition and required roles
+    CFNPipelinePolicy:
+        Type: AWS::IAM::ManagedPolicy
+        Properties:
+            Description: CloudFormation Pipeline Execution Policy
+            Path: "/"
+            PolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                    Effect: Allow
+                    Action: 
+                        - 'cloudformation:CreateStack'
+                        - 'cloudformation:DescribeStacks'
+                        - 'cloudformation:DeleteStack'
+                        - 'cloudformation:UpdateStack'
+                        - 'cloudformation:CreateChangeSet'
+                        - 'cloudformation:ExecuteChangeSet'
+                        - 'cloudformation:DeleteChangeSet'
+                        - 'cloudformation:DescribeChangeSet'
+                        - 'cloudformation:SetStackPolicy'
+                        - 'cloudformation:SetStackPolicy'
+                        - 'cloudformation:ValidateTemplate'
+                        - 'codebuild:StartBuild'
+                        - 'codebuild:BatchGetBuilds'
+                    Resource: "*"
+
+    CloudFormationExecutionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            Action: 
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - cloudformation.amazonaws.com
+        Path: /
+        ManagedPolicyArns:
+          - 'arn:aws:iam::aws:policy/AdministratorAccess'
+
+    PipelineExecutionRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: '2012-10-17'
+                Statement:
+                  - Action: 
+                    - 'sts:AssumeRole'
+                    Effect: Allow
+                    Principal:
+                      Service: 
+                        - codepipeline.amazonaws.com
+            Path: /
+            ManagedPolicyArns:
+                - 'arn:aws:iam::aws:policy/AWSCodeCommitFullAccess'
+                - 'arn:aws:iam::aws:policy/AmazonS3FullAccess'
+                - !Ref CFNPipelinePolicy
+            Policies:
+                - PolicyName: CodePipelineAccess
+                  PolicyDocument:
+                    Version: '2012-10-17'
+                    Statement:
+                        - Action:
+                            - 'iam:PassRole'
+                            - 'lambda:InvokeFunction'
+                            - 'lambda:ListFunctions'
+                            - 'lambda:InvokeAsyc'
+                          Effect: Allow
+                          Resource: '*'
+
+    Pipeline:
+        Type: AWS::CodePipeline::Pipeline
+        Properties:
+            ArtifactStore: 
+                Location: !Ref BuildArtifactsBucket
+                Type: S3
+            Name: !Sub CreateThumbnail_pipeline
+            RoleArn: !GetAtt PipelineExecutionRole.Arn
+            Stages:
+                - Name: Source
+                  Actions:
+                    - Name: CodeCommitRepo
+                      ActionTypeId:
+                        Category: Source
+                        Owner: AWS
+                        Provider: CodeCommit
+                        Version: 1
+                      Configuration:
+                        RepositoryName: !Sub 'CreateThumbnail_repo'
+                        BranchName: master
+                      OutputArtifacts:
+                        - Name: SourceZip
+                      RunOrder: 1
+                - Name: Build
+                  Actions:
+                    - Name: CodeBuild
+                      ActionTypeId:
+                        Category: Build
+                        Owner: AWS
+                        Provider: CodeBuild
+                        Version: 1
+                      Configuration:
+                        ProjectName: !Ref CodeBuildProject
+                      InputArtifacts:
+                        - Name: SourceZip
+                      OutputArtifacts:
+                        - Name: BuiltZip
+                - Name: DeployTests
+                  Actions:
+                    - Name: CreateChangeSet
+                      ActionTypeId:
+                        Category: Deploy
+                        Owner: AWS
+                        Provider: CloudFormation
+                        Version: 1
+                      Configuration:
+                        ActionMode: CHANGE_SET_REPLACE
+                        RoleArn: !GetAtt CloudFormationExecutionRole.Arn
+                        StackName: !Sub 'CreateThumbnail-Stack-Tests'
+                        ChangeSetName: !Sub 'CreateThumbnail-ChangeSet-Tests'
+                        TemplatePath: BuiltZip::CreateThumbnailTest-SAM.yaml
+                        Capabilities: CAPABILITY_IAM
+                      InputArtifacts:
+                        - Name: BuiltZip
+                      OutputArtifacts:
+                        - Name: TestChangeSet
+                      RunOrder: 1
+                    - Name: ExecuteChangeSet
+                      ActionTypeId:
+                        Category: Deploy
+                        Owner: AWS
+                        Provider: CloudFormation
+                        Version: 1
+                      Configuration:
+                        ActionMode: CHANGE_SET_EXECUTE
+                        RoleArn: !GetAtt CloudFormationExecutionRole.Arn
+                        StackName: !Sub 'CreateThumbnail-Stack-Tests'
+                        ChangeSetName: !Sub 'CreateThumbnail-ChangeSet-Tests'
+                      OutputArtifacts:
+                        - Name: ExecutedTestChangeSet
+                      RunOrder: 2
+                - Name: Beta
+                  Actions:
+                    - Name: CreateChangeSet
+                      ActionTypeId:
+                        Category: Deploy
+                        Owner: AWS
+                        Provider: CloudFormation
+                        Version: 1
+                      Configuration:
+                        ActionMode: CHANGE_SET_REPLACE
+                        RoleArn: !GetAtt CloudFormationExecutionRole.Arn
+                        StackName: !Sub 'CreateThumbnail-Stack-Beta'
+                        ChangeSetName: !Sub 'CreateThumbnail-ChangeSet-Beta'
+                        TemplatePath: BuiltZip::CreateThumbnail-SAM.yaml
+                        Capabilities: CAPABILITY_IAM
+                        ParameterOverrides: '{ "Stage": "beta" }'
+                      InputArtifacts:
+                        - Name: BuiltZip
+                      RunOrder: 1
+                    - Name: ExecuteChangeSet
+                      ActionTypeId:
+                        Category: Deploy
+                        Owner: AWS
+                        Provider: CloudFormation
+                        Version: 1
+                      Configuration:
+                        ActionMode: CHANGE_SET_EXECUTE
+                        RoleArn: !GetAtt CloudFormationExecutionRole.Arn
+                        StackName: !Sub 'CreateThumbnail-Stack-Beta'
+                        ChangeSetName: !Sub 'CreateThumbnail-ChangeSet-Beta'
+                      OutputArtifacts:
+                        - Name: !Sub 'CreateThumbnailBetaChangeSet'
+                      RunOrder: 2
 
