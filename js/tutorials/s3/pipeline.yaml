@@ -43,17 +43,19 @@ Resources:
         Properties:
             Name: !Sub 'CreateThumbnail_build'
             Description: Build project for the Lambda service
+            Artifacts:
+                Type: NO_ARTIFACTS
             Environment: 
                 Type: LINUX_CONTAINER
                 ComputeType: BUILD_GENERAL1_SMALL
-                Image: aws/codebuild/eb-nodejs-4.4.6-amazonlinux-64:2.1.3
+                Image: aws/codebuild/nodejs:4.3.2
                 EnvironmentVariables:
-                  - Name: BUILD_OUTPUT_BUCKET
-                    Value: !Ref BuildArtifactsBucket
+                    - Name: BUILD_OUTPUT_BUCKET
+                      Value: !Ref BuildArtifactsBucket
             ServiceRole: !GetAtt CodeBuildServiceRole.Arn
             Source: 
                 Type: GITHUB
                 Location: https://github.com/asterkin/lambda-dev.git
-                BuildSpec: "version: 0.1\nphases:\n  build:\n    commands:\n      - cd js/tutorials/s3\n      - ./build $BUILD_OUTPUT_BUCKET\n"
+                BuildSpec: "version: 0.1\nphases:\n  install:\n    commands:\n     apt-get update && apt-get install -y jq\n  build:\n    commands:\n      - cd js/tutorials/s3 && ./build $BUILD_OUTPUT_BUCKET\nartifacts:\n  files:\n    js/tutorials/s3/test/resource/*.png"
 
 
