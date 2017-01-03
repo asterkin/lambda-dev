@@ -1,5 +1,10 @@
 #!/bin/bash
 
-scp -i "~/Downloads/aws-desktop-key.pem" -r ~/.aws ubuntu@$1:~/
-scp -i "~/Downloads/aws-desktop-key.pem" ~/.gitconfig ubuntu@$1:~/
+scp -i "~/Downloads/aws-eu-west-1.pem" -r ~/.aws ubuntu@$1:~/
+scp -i "~/Downloads/aws-eu-west-1.pem" ~/.gitconfig ubuntu@$1:~/
+ssh -i "~/Downloads/aws-eu-west-1.pem" ubuntu@$1 "bash -s" <<EOF
+git config --global credential.helper '!aws codecommit credential-helper $@'
+git config --global credential.UseHttpPath true
+EOF
+
 
