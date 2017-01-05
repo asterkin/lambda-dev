@@ -1,0 +1,56 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Parameters:
+    TestDataBucket:
+        Type: String
+        Default: Error
+        Description: Name of S3 bucket with test data
+    StackName:
+        Type: String
+        Default: Error
+        Description: Name of the Stack Under Test
+
+Resources:
+  CreateThumbnailTestFunctionExecutionRole:
+     Type: AWS::IAM::Role
+     Properties:
+       AssumeRolePolicyDocument:
+         Version: '2012-10-17'
+         Statement:
+           - Action: 
+               - 'sts:AssumeRole'
+             Effect: Allow
+             Principal:
+               Service: 
+                 - lambda.amazonaws.com
+       Path: /
+       Policies:
+         - PolicyName: CopyData
+           PolicyDocument:
+             Version: '2012-10-17'
+             Statement:
+               - Action:
+                   - 's3:*'
+                   - 'lambda:InvokeAsync'
+                   - 'lambda:InvokeFunction'
+                   - 'cloudformation:DescribeStackResource'
+                   - 'codepipeline:PutJobFailureResult'
+                   - 'codepipeline:PutJobSuccessResult'
+                   - 'logs:*'
+                 Effect: Allow
+                 Resource: '*'
+
+  CreateThumbnailTest:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./js
+      Handler: CreateThumbnailTest.handler
+      Runtime: nodejs4.3
+      Timeout: 60
+      Role: !GetAtt CreateThumbnailTestFunctionExecutionRole.Arn
+      Environment:
+         Variables:
+           TEST_DATA: !Sub '${TestDataBucket}'
+           STACK_NAME: !Sub '${StackName}'
+
+

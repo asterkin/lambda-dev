@@ -1,0 +1,13 @@
+#!/bin/bash
+
+echo "Starting build `date` in `pwd`"
+cd js
+npm install async gm
+cd -
+
+aws cloudformation package \
+   --template-file ./CreateThumbnail.yaml \
+   --output-template-file /tmp/CreateThumbnail-SAM.yaml \
+   --s3-bucket $1 
+
+

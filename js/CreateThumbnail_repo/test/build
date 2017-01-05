@@ -1,0 +1,15 @@
+#!/bin/bash
+
+echo "Start building `date` in `pwd`"
+cd js
+npm install async
+cd -
+
+aws cloudformation package \
+   --template-file ./CreateThumbnailTest.yaml \
+   --output-template-file /tmp/CreateThumbnailTest-SAM.yaml \
+   --s3-bucket $1
+
+aws s3 cp resource/ s3://$1/ --recursive --exclude "*" --include "*.png"
+
+

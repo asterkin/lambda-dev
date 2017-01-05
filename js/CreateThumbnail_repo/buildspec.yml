@@ -1,0 +1,24 @@
+version: 0.1
+
+phases:
+  install:
+    commands:
+      - echo "nothing to do in install"
+  pre_build:
+    commands:
+      - echo "nothing to do in pre-build"
+  build:
+    commands:
+      - cd test && ./build $BUILD_OUTPUT_BUCKET
+      - cd main && ./build $BUILD_OUTPUT_BUCKET
+  post_build:
+    commands:
+      - echo "build completed on `date`"
+
+artifacts:
+  files:
+    - /tmp/CreateThumbnail-SAM.yaml
+    - /tmp/CreateThumbnailTest-SAM.yaml
+  discard-paths: yes
+
+

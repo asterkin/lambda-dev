@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  FacePictureResized:
+    Type: AWS::S3::Bucket
+
+  FacePicture:
+    Type: AWS::S3::Bucket
+
+  CreateThumbnail:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./js
+      Handler: CreateThumbnail.handler
+      Runtime: nodejs4.3
+      Timeout: 60
+      Policies: AWSLambdaExecute
+      Events:
+          PictureUpload:
+              Type: S3
+              Properties:
+                 Bucket: !Ref FacePicture
+                 Events: s3:ObjectCreated:*
+      Environment:
+        Variables:
+          RESIZED_BUCKET: !Ref FacePictureResized
+
+Outputs:
+  S3UploadBucket:
+    Description: S3 URL for uploading source artifacts
+    Value: !Ref FacePicture
+    Export:
+      Name: !Sub 'S3UploadBucket' #-${Stage}
+
+  S3ResultBucket:
+    Description: S3 URL for transformation result artifacts
+    Value: !Ref FacePictureResized
+    Export:
+      Name: !Sub 'S3ResultBucket' #-${Stage}
+
+
