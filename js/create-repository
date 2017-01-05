@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo $2
+aws codecommit create-repository --repository-name $1 --repository-description "$2" --profile admin
+
